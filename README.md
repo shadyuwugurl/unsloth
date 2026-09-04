@@ -406,3 +406,92 @@ This structure helps support ongoing Unsloth development while keeping the proje
 - The Pytorch and [Torch AO](https://github.com/unslothai/unsloth/pull/3391) team for their contributions
 - NVIDIA for their [NeMo DataDesigner](https://github.com/NVIDIA-NeMo/DataDesigner) library and their contributions
 - And of course for every single person who has contributed or has used Unsloth!
+
+---
+
+## 🔬 Unsloth Studio Fork - Research & Development Roadmap
+
+This fork explores advanced model optimization, compression, and training techniques. Below is the implementation roadmap for integrating cutting-edge research into Unsloth Studio.
+
+### 📚 Research Papers & Implementations
+
+| Technique | Paper | Repository | Status |
+|-----------|-------|------------|--------|
+| **LoPT** (Low-Rank Parameter Tuning) | [arXiv:2605.04913](https://arxiv.org/abs/2605.04913) | [HumyuShi/LoPT](https://github.com/HumyuShi/LoPT) | 📋 Planned |
+| **QuEPT** (Quantization-Aware Parameter-Efficient Tuning) | [arXiv:2602.12609](https://arxiv.org/abs/2602.12609) | [xuke225/QuEPT](https://github.com/xuke225/QuEPT) | 📋 Planned |
+| **OneComp** (One-Shot Compression) | [arXiv:2603.28845](https://arxiv.org/abs/2603.28845) | [FujitsuResearch/OneCompression](https://github.com/FujitsuResearch/OneCompression) | 📋 Planned |
+| **E-PMQ** (Efficient Post-Training Mixed Quantization) | [arXiv:2605.16882](https://arxiv.org/abs/2605.16882) | [wwjzhy/E-PMQ](https://github.com/wwjzhy/E-PMQ) | 📋 Planned |
+| **Blockwise SFT** | [arXiv:2508.19529](https://arxiv.org/abs/2508.19529) | [Bowen-Sun-0728/Blockwise-SFT](https://github.com/Bowen-Sun-0728/Blockwise-SFT) | 📋 Planned |
+| **CT-SFT** (Curriculum Training for SFT) | [arXiv:2601.08146](https://arxiv.org/abs/2601.08146) | - | 📋 Planned |
+
+### 🧬 Model Merging & Architecture Fusion
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Darwin Merge** | Evolutionary model merging with fitness-based selection | 📋 Planned |
+| **Franken Merge (Burger Style)** | Layer-wise merging with "burger" architecture (bottom-mid-top) | 📋 Planned |
+| **Active Aware Quant Training/Tuning/Merging** | Quantization-aware training with active layer selection | 📋 Planned |
+| **Cross-Architecture Layer Swapping** | Swap layers between architectures (e.g., Mamba2 → Mamba3) | 📋 Planned |
+| **Fusion Layers & Weights** | Fuse layers/weights from different models into target model | 📋 Planned |
+| **Multi-Model & Multi-Adapter Merging** | Merge multiple models, adapters, and architectures | 📋 Planned |
+
+### 🏗️ Training from Scratch & Extraction
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Train from Scratch Guide** | Complete walkthrough for pretraining models with Unsloth | 📋 Planned |
+| **Training/Tuning Extraction** | Extract LoRAs, deltas, datasets, extra weights/layers from trained models | 📋 Planned |
+| **Custom Training Reverse Engineering** | Recover training configuration from final model weights | 📋 Planned |
+
+### 📁 Implementation Structure
+
+```
+unsloth/
+├── unsloth/
+│   ├── compression/          # QuEPT, E-PMQ, OneComp implementations
+│   ├── merging/              # Darwin, Franken, cross-arch merging
+│   ├── extraction/           # Training extraction utilities
+│   ├── quantization/         # Active aware quant training
+│   ├── architectures/        # Layer swapping, fusion layers
+│   └── training/
+│       ├── from_scratch/     # Pretraining guides & scripts
+│       ├── blockwise/        # Blockwise SFT
+│       ├── curriculum/       # CT-SFT
+│       └── lora_extraction/  # LoPT, LoRA recovery
+├── studio/
+│   ├── components/           # UI for merging, extraction, quantization
+│   └── pages/                # New Studio pages for advanced features
+└── docs/
+    ├── research/             # Paper implementations documentation
+    ├── guides/               # Train from scratch, merging guides
+    └── api/                  # API documentation for new features
+```
+
+### 🚀 Getting Started with This Fork
+
+```bash
+# Clone the fork
+git clone https://github.com/shadyuwugurl/unsloth.git
+cd unsloth
+
+# Install with local development setup
+./install.sh --local
+
+# Launch Unsloth Studio with experimental features
+unsloth studio -p 8888 --experimental
+```
+
+### 📖 Documentation
+
+All implementation details, guides, and API references are documented in:
+- **GitHub Wiki**: [Project Wiki](https://github.com/shadyuwugurl/unsloth/wiki)
+- **Supermemory**: Persistent knowledge base for implementation decisions
+- **`docs/` folder**: Technical documentation and guides
+
+### 🤝 Contributing
+
+This is a research fork. For contributing to upstream Unsloth, please see [CONTRIBUTING.md](CONTRIBUTING.md) and submit PRs to [unslothai/unsloth](https://github.com/unslothai/unsloth).
+
+### 📄 License
+
+This fork maintains the same dual-licensing model as upstream Unsloth (Apache 2.0 / AGPL-3.0).
