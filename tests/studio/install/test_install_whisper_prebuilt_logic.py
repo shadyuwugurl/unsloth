@@ -789,8 +789,9 @@ def test_windows_cpu_bundle_still_requires_manifest_libomp(tmp_path, monkeypatch
 
 
 def test_linux_slim_still_requires_manifest_libomp(tmp_path, monkeypatch):
-    # The exemption is Windows only: llama's clang-built linux slices bundle
-    # libomp beside a libggml-base that really imports it, so it stays mandatory.
+    # llama's clang-built linux-x64 slices bundle libomp beside a libggml-base that
+    # really imports it, so on x64 it stays mandatory even for a GPU bundle. The
+    # arm64 exemption below must not widen to this case.
     bin_dir = _fake_llama_bin(tmp_path, backend_module = "libggml-cuda.so")
     monkeypatch.setattr(
         M, "installed_llama_runtime", lambda: (bin_dir, SLIM_LLAMA_TAG, "linux-cuda")
@@ -800,6 +801,37 @@ def test_linux_slim_still_requires_manifest_libomp(tmp_path, monkeypatch):
     )
 
     assert M.slim_pairing_for_artifact(artifact, _host("linux", "x64"), "cuda") is None
+
+
+def test_linux_arm64_gpu_slim_drops_manifest_libomp(tmp_path, monkeypatch):
+    # Why linux-arm64 could never install whisper at all: the manifest lists
+    # libomp.so.5 because the arm64 *cpu* bundle's ggml links LLVM OpenMP, but the
+    # arm64 CUDA bundle neither ships nor imports it -- the host provides GNU
+    # libgomp.so.1 instead. Requiring the name rejected the one asset that works.
+    bin_dir = _fake_llama_bin(tmp_path, backend_module = "libggml-cuda.so")
+    monkeypatch.setattr(
+        M, "installed_llama_runtime", lambda: (bin_dir, SLIM_LLAMA_TAG, "linux-cuda")
+    )
+    artifact = _slim_artifact(
+        arch = "arm64",
+        requires_ggml_sonames = ["libggml.so.0", "libggml-base.so.0", "libomp.so.5"],
+    )
+
+    assert M.slim_pairing_for_artifact(artifact, _host("linux", "arm64"), "cuda") is not None
+
+
+def test_linux_arm64_cpu_bundle_still_requires_manifest_libomp(tmp_path, monkeypatch):
+    # The exemption is gated on a GPU ggml module being on disk. A genuine arm64 cpu
+    # bundle does import libomp, so a runtime that lost it must fail the pairing
+    # rather than install a whisper that cannot load.
+    bin_dir = _fake_llama_bin(tmp_path, backend_module = None)
+    monkeypatch.setattr(M, "installed_llama_runtime", lambda: (bin_dir, SLIM_LLAMA_TAG, ""))
+    artifact = _slim_artifact(
+        arch = "arm64",
+        requires_ggml_sonames = ["libggml.so.0", "libggml-base.so.0", "libomp.so.5"],
+    )
+
+    assert M.slim_pairing_for_artifact(artifact, _host("linux", "arm64"), "cpu") is None
 
 
 @pytest.mark.parametrize(

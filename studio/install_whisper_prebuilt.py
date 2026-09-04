@@ -446,16 +446,21 @@ def llama_runtime_pairs(
     return commit is not None and commit == _llama_ggml_commit(required_tag)
 
 
-def _ships_windows_gpu_ggml_module(llama_bin_dir: Path) -> bool:
-    """Whether a paired Windows llama runtime carries a GPU ggml backend module.
+def _ships_gpu_ggml_module(llama_bin_dir: Path, os_key: str) -> bool:
+    """Whether a paired llama runtime carries a GPU ggml backend module.
     Only the cpu bundle links ggml against libomp, and bundle_profile cannot tell
     the two apart: it is absent on both the published rocm artifacts and every
     upstream-sourced install, so the files on disk decide."""
     for backend, per_os in SLIM_BACKEND_MODULE_GLOBS.items():
-        glob = per_os.get("windows")
+        glob = per_os.get(os_key)
         if backend != "cpu" and glob and any(llama_bin_dir.glob(glob)):
             return True
     return False
+
+
+def _ships_windows_gpu_ggml_module(llama_bin_dir: Path) -> bool:
+    """Windows spelling of _ships_gpu_ggml_module; kept for call-site clarity."""
+    return _ships_gpu_ggml_module(llama_bin_dir, "windows")
 
 
 def slim_pairing_for_artifact(
@@ -497,6 +502,28 @@ def slim_pairing_for_artifact(
             name
             for name in required_sonames
             if not (name.lower().startswith("libomp") and name.lower().endswith(".dll"))
+        ]
+    if (
+        host.whisper_os == "linux"
+        and host.whisper_arch == "arm64"
+        and _ships_gpu_ggml_module(llama_bin_dir, "linux")
+    ):
+        # Same shape as the Windows case above, and the reason linux-arm64 could never
+        # install whisper: the manifest entry lists libomp.so.5 because the arm64 cpu
+        # bundle's ggml links LLVM OpenMP, but the arm64 GPU bundle neither ships nor
+        # imports it. It carries only libggml-*/libllama-*/libmtmd*, and the host
+        # provides GNU libgomp.so.1, never libomp.so.5, so requiring the name rejected
+        # the one asset that would have worked.
+        #
+        # arm64 only, and deliberately so: llama's clang-built linux-x64 slices do
+        # bundle libomp beside a libggml-base that really imports it, so x64 keeps the
+        # requirement (test_linux_slim_still_requires_manifest_libomp pins that). The
+        # gate on a GPU ggml module being on disk likewise keeps it for a genuine arm64
+        # cpu bundle, which needs libomp too.
+        required_sonames = [
+            name
+            for name in required_sonames
+            if not (name.lower().startswith("libomp") and ".so" in name.lower())
         ]
     missing = [name for name in required_sonames if not (llama_bin_dir / name).is_file()]
     if missing:
